@@ -16,7 +16,7 @@ now_cst = now_utc + timedelta(hours=CST_OFFSET)
 
 # Define start and peak times in CST
 time_start_cst = datetime(2026, 1, 23, 12, 52)
-time_peak_cst  = datetime(2026, 1, 23, 16, 0)
+time_peak_cst  = datetime(2026, 1, 23, 14, 45)
 
 # Base start and peak values
 start_values = {
@@ -121,6 +121,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
