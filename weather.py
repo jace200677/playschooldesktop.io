@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 # Weather Underground Station ID and password
 STATION_ID = "KMNBABBI25"
 PASSWORD = "SX8EG38H"
-
+SECRET = "my-secret-token"
 # Timezone offset: CST is UTC-6
 CST_OFFSET = -6
 
@@ -89,3 +89,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
