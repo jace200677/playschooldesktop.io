@@ -73,7 +73,12 @@ rain_in     = clamp(fluctuate(interpolate(start_values["rain_in"], peak_values["
 baro_in     = fluctuate(interpolate(start_values["baro_in"], peak_values["baro_in"], factor), 0.05)
 dewpt_f     = fluctuate(interpolate(start_values["dewpt_f"], peak_values["dewpt_f"], factor), 2.0)
 humidity    = clamp(fluctuate(interpolate(start_values["humidity"], peak_values["humidity"], factor), 3.0), max_val=100)
-
+if humidity > 100:
+    humidity = 100
+if wind_dir < 0:
+    wind_dir = 359
+elif wind_dir >= 360:
+    wind_dir = 0
 # Constants
 wind_dir = clamp(fluctuate(230.0, 15.0), 0, 360)  # wind direction valid 0-360°
 clouds = "BKN250"
@@ -102,3 +107,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
