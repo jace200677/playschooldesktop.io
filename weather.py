@@ -99,15 +99,17 @@ sol_rad = max(0, sol_rad + random.uniform(-10, 10))       # fluctuation ±10 W/m
 # Format current UTC datetime for Weather Underground
 dateutc_str = now_utc.strftime("%Y-%m-%d %H:%M:%S")
 
-# Build URL
 URL = (
     f"https://weatherstation.wunderground.com/weatherstation/updateweatherstation.php"
     f"?ID={STATION_ID}&PASSWORD={PASSWORD}&dateutc=now"
     f"&winddir={wind_dir:.0f}&windspeedmph={wind_speed:.1f}&windgustmph={wind_gust:.1f}"
-    f"&tempf={temp_f:.1f}&rainin={rain_in:.2f}&baromin={baro_in:.2f}&dewptf={dewpt_f:.1f}"
-    f"&humidity={humidity:.0f}&weather={weather}&clouds={clouds}"
+    f"&tempf={temp_f:.1f}&rainin={rain_in:.2f}&dailyrainin={daily_rain:.2f}"
+    f"&baromin={baro_in:.2f}&dewptf={dewpt_f:.1f}&humidity={humidity:.0f}"
+    f"&uv={uv_index:.1f}&solarradiation={sol_rad:.1f}"
+    f"&weather={weather}&clouds={clouds}"
     f"&softwaretype={software_type}&action=updateraw"
 )
+
 
 def main():
     print("Sending weather update at CST:", now_cst.strftime("%Y-%m-%d %H:%M:%S"))
@@ -118,6 +120,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
