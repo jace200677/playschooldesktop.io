@@ -76,6 +76,7 @@ temp_f      = fluctuate(interpolate(start_values["temp_f"], peak_values["temp_f"
 wind_speed  = fluctuate(interpolate(start_values["wind_speed"], peak_values["wind_speed"], factor), 5.0)
 wind_gust   = fluctuate(interpolate(start_values["wind_gust"], peak_values["wind_gust"], factor), 7.0)
 rain_in     = interpolate(start_values["rain_in"], peak_values["rain_in"], factor)  # no fluctuation
+daily_rain  = interpolate(start_values["daily_rain_in"], peak_values["daily_rain_in"], factor)
 baro_in     = fluctuate(interpolate(start_values["baro_in"], peak_values["baro_in"], factor), 0.05)
 dewpt_f     = fluctuate(interpolate(start_values["dewpt_f"], peak_values["dewpt_f"], factor), 2.0)
 humidity    = clamp(fluctuate(interpolate(start_values["humidity"], peak_values["humidity"], factor), 3.0), max_val=100)
@@ -120,6 +121,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
