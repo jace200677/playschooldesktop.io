@@ -76,7 +76,7 @@ humidity    = clamp(fluctuate(interpolate(start_values["humidity"], peak_values[
 if humidity > 100:
     humidity = 100
 # Constants
-wind_dir = clamp(fluctuate(230.0, 15.0), 0, 360)  # wind direction valid 0-360°
+wind_dir = fluctuate(230.0, 15.0)  # random fluctuation
 if wind_dir < 0:
     wind_dir = 359
 elif wind_dir >= 360:
@@ -107,6 +107,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
