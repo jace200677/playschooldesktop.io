@@ -33,13 +33,13 @@ start_values = {
 }
 
 peak_values = {
-    "temp_f": -5.0,
+    "temp_f": 25.0,
     "wind_speed": 98.0,
     "wind_gust": 128.0,
     "rain_in": 0.0,
     "daily_rain_in": 0.0,
     "baro_in": 30.30,
-    "dewpt_f": -9.0,
+    "dewpt_f": 29.0,
     "humidity": 100.0,
     "uv_index": 5.5,       # peak UV at solar noon
     "sol_rad": 250.0       # peak solar radiation W/m^2 at solar noon
@@ -121,6 +121,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
