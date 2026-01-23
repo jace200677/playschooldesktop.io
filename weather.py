@@ -39,13 +39,21 @@ peak_values = {
     "humidity": 100.0
 }
 
-# Linear interpolation function
+# Linear interpolation
 def interpolate(start, end, factor):
     return start + (end - start) * factor
 
-# Random fluctuation function
+# Random fluctuation
 def fluctuate(value, fluctuation):
     return value + random.uniform(-fluctuation, fluctuation)
+
+# Clamp function
+def clamp(value, min_val=None, max_val=None):
+    if min_val is not None and value < min_val:
+        return min_val
+    if max_val is not None and value > max_val:
+        return max_val
+    return value
 
 # Compute factor based on time
 if now_cst <= time_start_cst:
@@ -57,17 +65,17 @@ else:
     elapsed_seconds = (now_cst - time_start_cst).total_seconds()
     factor = elapsed_seconds / total_seconds
 
-# Interpolate and add random fluctuations
+# Interpolate + fluctuate + clamp
 temp_f      = fluctuate(interpolate(start_values["temp_f"], peak_values["temp_f"], factor), 3.0)
 wind_speed  = fluctuate(interpolate(start_values["wind_speed"], peak_values["wind_speed"], factor), 5.0)
 wind_gust   = fluctuate(interpolate(start_values["wind_gust"], peak_values["wind_gust"], factor), 7.0)
-rain_in     = fluctuate(interpolate(start_values["rain_in"], peak_values["rain_in"], factor), 0.05)
+rain_in     = clamp(fluctuate(interpolate(start_values["rain_in"], peak_values["rain_in"], factor), 0.05), min_val=0)
 baro_in     = fluctuate(interpolate(start_values["baro_in"], peak_values["baro_in"], factor), 0.05)
 dewpt_f     = fluctuate(interpolate(start_values["dewpt_f"], peak_values["dewpt_f"], factor), 2.0)
-humidity    = fluctuate(interpolate(start_values["humidity"], peak_values["humidity"], factor), 3.0)
+humidity    = clamp(fluctuate(interpolate(start_values["humidity"], peak_values["humidity"], factor), 3.0), max_val=100)
 
 # Constants
-wind_dir = fluctuate(230.0, 15.0)
+wind_dir = clamp(fluctuate(230.0, 15.0), 0, 360)  # wind direction valid 0-360°
 clouds = "BKN250"
 weather = "RA"
 software_type = "vws versionxx"
