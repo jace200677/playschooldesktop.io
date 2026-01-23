@@ -24,9 +24,12 @@ start_values = {
     "wind_speed": 38.0,
     "wind_gust": 58.0,
     "rain_in": 0.0,
+    "daily_rain_in": 0.0,
     "baro_in": 28.80,
     "dewpt_f": -55.0,
-    "humidity": 100.0
+    "humidity": 100.0,
+    "uv_index": 0.0,       # start UV (night)
+    "sol_rad": 0.0         # start solar radiation (night)
 }
 
 peak_values = {
@@ -34,9 +37,12 @@ peak_values = {
     "wind_speed": 98.0,
     "wind_gust": 128.0,
     "rain_in": 0.0,
+    "daily_rain_in": 0.0,
     "baro_in": 30.30,
-    "dewpt_f": -55.0,
-    "humidity": 100.0
+    "dewpt_f": -29.0,
+    "humidity": 100.0,
+    "uv_index": 5.5,       # peak UV at solar noon
+    "sol_rad": 250.0       # peak solar radiation W/m^2 at solar noon
 }
 
 # Linear interpolation
@@ -84,6 +90,11 @@ elif wind_dir >= 360:
 clouds = "BKN250"
 weather = "RA"
 software_type = "vws versionxx"
+uv_index = interpolate(start_values["uv_index"], peak_values["uv_index"], factor)
+uv_index = max(0, uv_index + random.uniform(-0.3, 0.3))  # fluctuation ±0.3, clamp ≥0
+
+sol_rad = interpolate(start_values["sol_rad"], peak_values["sol_rad"], factor)
+sol_rad = max(0, sol_rad + random.uniform(-10, 10))       # fluctuation ±10 W/m², clamp ≥0
 
 # Format current UTC datetime for Weather Underground
 dateutc_str = now_utc.strftime("%Y-%m-%d %H:%M:%S")
@@ -107,6 +118,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
