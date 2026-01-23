@@ -1,10 +1,12 @@
 import requests
 from datetime import datetime, timedelta
+import random
 
 # Weather Underground Station ID and password
 STATION_ID = "KMNBABBI25"
 PASSWORD = "SX8EG38H"
 SECRET = "my-secret-token"
+
 # Timezone offset: CST is UTC-6
 CST_OFFSET = -6
 
@@ -13,10 +15,10 @@ now_utc = datetime.utcnow()
 now_cst = now_utc + timedelta(hours=CST_OFFSET)
 
 # Define start and peak times in CST
-time_start_cst = datetime(2026, 1, 23, 12, 52)  # 1/22/26 9:10 PM CST
-time_peak_cst  = datetime(2026, 1, 23, 18, 0)    # 1/23/26 6:00 AM CST
+time_start_cst = datetime(2026, 1, 23, 12, 52)
+time_peak_cst  = datetime(2026, 1, 23, 18, 0)
 
-# Scenario 1 (start)
+# Base start and peak values
 start_values = {
     "temp_f": -65.0,
     "wind_speed": 38.0,
@@ -27,7 +29,6 @@ start_values = {
     "humidity": 100.0
 }
 
-# Scenario 2 (peak)
 peak_values = {
     "temp_f": -25.0,
     "wind_speed": 98.0,
@@ -42,6 +43,10 @@ peak_values = {
 def interpolate(start, end, factor):
     return start + (end - start) * factor
 
+# Random fluctuation function
+def fluctuate(value, fluctuation):
+    return value + random.uniform(-fluctuation, fluctuation)
+
 # Compute factor based on time
 if now_cst <= time_start_cst:
     factor = 0.0
@@ -52,17 +57,17 @@ else:
     elapsed_seconds = (now_cst - time_start_cst).total_seconds()
     factor = elapsed_seconds / total_seconds
 
-# Interpolate all weather values
-temp_f = interpolate(start_values["temp_f"], peak_values["temp_f"], factor)
-wind_speed = interpolate(start_values["wind_speed"], peak_values["wind_speed"], factor)
-wind_gust = interpolate(start_values["wind_gust"], peak_values["wind_gust"], factor)
-rain_in = interpolate(start_values["rain_in"], peak_values["rain_in"], factor)
-baro_in = interpolate(start_values["baro_in"], peak_values["baro_in"], factor)
-dewpt_f = interpolate(start_values["dewpt_f"], peak_values["dewpt_f"], factor)
-humidity = interpolate(start_values["humidity"], peak_values["humidity"], factor)
+# Interpolate and add random fluctuations
+temp_f      = fluctuate(interpolate(start_values["temp_f"], peak_values["temp_f"], factor), 3.0)
+wind_speed  = fluctuate(interpolate(start_values["wind_speed"], peak_values["wind_speed"], factor), 5.0)
+wind_gust   = fluctuate(interpolate(start_values["wind_gust"], peak_values["wind_gust"], factor), 7.0)
+rain_in     = fluctuate(interpolate(start_values["rain_in"], peak_values["rain_in"], factor), 0.05)
+baro_in     = fluctuate(interpolate(start_values["baro_in"], peak_values["baro_in"], factor), 0.05)
+dewpt_f     = fluctuate(interpolate(start_values["dewpt_f"], peak_values["dewpt_f"], factor), 2.0)
+humidity    = fluctuate(interpolate(start_values["humidity"], peak_values["humidity"], factor), 3.0)
 
 # Constants
-wind_dir = 230.0
+wind_dir = fluctuate(230.0, 15.0)
 clouds = "BKN250"
 weather = "RA"
 software_type = "vws versionxx"
@@ -73,8 +78,8 @@ dateutc_str = now_utc.strftime("%Y-%m-%d %H:%M:%S")
 # Build URL
 URL = (
     f"https://weatherstation.wunderground.com/weatherstation/updateweatherstation.php"
-    f"?ID={STATION_ID}&PASSWORD={PASSWORD}&dateutc={dateutc_str}"
-    f"&winddir={wind_dir}&windspeedmph={wind_speed:.1f}&windgustmph={wind_gust:.1f}"
+    f"?ID={STATION_ID}&PASSWORD={PASSWORD}&dateutc=now"
+    f"&winddir={wind_dir:.0f}&windspeedmph={wind_speed:.1f}&windgustmph={wind_gust:.1f}"
     f"&tempf={temp_f:.1f}&rainin={rain_in:.2f}&baromin={baro_in:.2f}&dewptf={dewpt_f:.1f}"
     f"&humidity={humidity:.0f}&weather={weather}&clouds={clouds}"
     f"&softwaretype={software_type}&action=updateraw"
@@ -89,5 +94,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
