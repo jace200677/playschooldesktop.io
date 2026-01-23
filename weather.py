@@ -13,27 +13,27 @@ now_utc = datetime.utcnow()
 now_cst = now_utc + timedelta(hours=CST_OFFSET)
 
 # Define start and peak times in CST
-time_start_cst = datetime(2026, 1, 22, 21, 10)  # 1/22/26 9:10 PM CST
-time_peak_cst  = datetime(2026, 1, 23, 6, 0)    # 1/23/26 6:00 AM CST
+time_start_cst = datetime(2026, 1, 23, 12, 52)  # 1/22/26 9:10 PM CST
+time_peak_cst  = datetime(2026, 1, 23, 18, 0)    # 1/23/26 6:00 AM CST
 
 # Scenario 1 (start)
 start_values = {
-    "temp_f": -35.0,
-    "wind_speed": 29.0,
-    "wind_gust": 40.0,
-    "rain_in": 0.0,
-    "baro_in": 30.60,
-    "dewpt_f": -15.0,
-    "humidity": 90.0
-}
-
-# Scenario 2 (peak)
-peak_values = {
     "temp_f": -65.0,
     "wind_speed": 38.0,
     "wind_gust": 58.0,
     "rain_in": 0.0,
     "baro_in": 28.80,
+    "dewpt_f": -55.0,
+    "humidity": 100.0
+}
+
+# Scenario 2 (peak)
+peak_values = {
+    "temp_f": -25.0,
+    "wind_speed": 98.0,
+    "wind_gust": 128.0,
+    "rain_in": 0.0,
+    "baro_in": 30.30,
     "dewpt_f": -55.0,
     "humidity": 100.0
 }
@@ -89,4 +89,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
