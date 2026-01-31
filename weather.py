@@ -1,6 +1,6 @@
 import requests
 from datetime import datetime, timedelta
-
+import random
 # ---------------- CONFIG ----------------
 STATION_ID = "KMNBABBI25"
 PASSWORD = "SX8EG38H"
@@ -50,25 +50,105 @@ def clamp(value, min_val=None, max_val=None):
         return max_val
     return value
 
-def adjust_indoor_temp(base_temp, now_cst, month):
-    """Deterministic indoor temperature based on season and time-of-day peaks."""
+def adjust_indoor_temp(base_temp, now_cst, month, outdoor_temp):
     temp = base_temp
 
-    # Seasonal adjustment
-    if month in [12, 1, 2]:  # Winter
-        temp += 5
-    elif month in [6, 7, 8]:  # Summer
-        temp += 2
+    weekday = now_cst.weekday()  # 0=Mon ... 6=Sun
+    is_weekday = weekday <= 4
+    is_friday_night = weekday == 4 and now_cst.hour >= 18
+    is_weekend = weekday >= 5
 
-    # Early morning winter bump (4:30-6:00 AM)
-    if now_cst.hour == 4 and now_cst.minute >= 30 or now_cst.hour == 5:
-        temp += 2
+    is_winter = month in [12, 1, 2]
+    is_warm_season = month in [3, 4, 5, 6, 7, 8, 9, 10, 11]
 
-    # Afternoon winter bump (3:15-4:30 PM)
-    if now_cst.hour == 15 and now_cst.minute >= 15 or now_cst.hour == 16:
-        temp += 1.5
+    # -------------------------------------------------
+    # 🔥 HEATING ENABLE CHECK
+    # -------------------------------------------------
+    heating_allowed = outdoor_temp < 55
 
-    return temp
+    # -------------------------------------------------
+    # 🌡️ BASE SEASONAL DRIFT
+    # -------------------------------------------------
+    if is_winter:
+        temp += 3.5
+    elif month in [6, 7, 8]:
+        temp += 1.0
+
+    def ramp(start_h, start_m, end_h, end_m, ramp_max):
+        start = start_h * 60 + start_m
+        end = end_h * 60 + end_m
+        now = now_cst.hour * 60 + now_cst.minute
+
+        if now < start or now > end:
+            return 0.0
+
+        factor = (now - start) / (end - start)
+        return ramp_max * factor
+
+    # -------------------------------------------------
+    # 🔥 HEATING FAILURE MODEL (ALL SEASONS)
+    # -------------------------------------------------
+    heating_failure = False
+    weak_heating = False
+
+    if heating_allowed:
+        roll = random.random()
+        if roll < 0.05:
+            heating_failure = True          # 5% hard failure
+        elif roll < 0.15:
+            weak_heating = True             # 10% weak output
+
+    # -------------------------------------------------
+    # 🔥 HEATING LOGIC
+    # -------------------------------------------------
+    if heating_allowed and not heating_failure:
+        strength = 0.4 if weak_heating else 1.0
+
+        if is_weekday:
+            temp += ramp(4, 30, 6, 0, 6.0 * strength)
+            temp += ramp(15, 15, 16, 30, 4.5 * strength)
+
+        if is_weekend or is_friday_night:
+            if outdoor_temp < 15:
+                temp += 7 * strength
+            elif outdoor_temp < 28:
+                temp += 5 * strength
+            elif outdoor_temp < 38:
+                temp += 3 * strength
+
+    # -------------------------------------------------
+    # ❄️ AIR CONDITIONING (80°F+ ONLY, NON-WINTER)
+    # -------------------------------------------------
+    if is_warm_season and temp >= 80.0:
+        ac_roll = random.random()
+
+        if ac_roll < 0.08:
+            pass  # AC failed
+        elif ac_roll < 0.18:
+            temp -= random.uniform(0.2, 0.6)
+        else:
+            cool_strength = random.uniform(0.8, 1.6)
+            if temp >= 85:
+                cool_strength += 0.8
+            temp -= cool_strength
+
+    # -------------------------------------------------
+    # 🔥 HEATING OVERSHOOT (INERTIA)
+    # -------------------------------------------------
+    overshoot = 0.0
+    if heating_allowed and not heating_failure and temp >= 75:
+        if random.random() < 0.25:
+            overshoot = random.uniform(0.3, 1.6)
+
+    max_heat_temp = 76.0 + overshoot
+
+    # -------------------------------------------------
+    # 🧯 FINAL CLAMPS
+    # -------------------------------------------------
+    if is_winter:
+        return clamp(temp, None, max_heat_temp)
+    else:
+        return clamp(temp, 70.0, 85.0)
 
 # ---------------- KEEP OLD FETCH_NEARBY_WIND ----------------
 def fetch_nearby_wind(station_id):
@@ -150,6 +230,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
