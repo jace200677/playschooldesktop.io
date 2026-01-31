@@ -132,6 +132,21 @@ def adjust_indoor_temp(base_temp, now_cst, month, outdoor_temp):
     else:
         return clamp(temp, 70.0, 85.0)
 
+
+
+def dew_point_f(temp_f, rh):
+    """
+    Calculate indoor dew point in Fahrenheit.
+    Magnus approximation.
+    """
+    # convert to Celsius
+    temp_c = (temp_f - 32) * 5 / 9
+    a = 17.27
+    b = 237.7
+    alpha = ((a * temp_c) / (b + temp_c)) + math.log(rh / 100.0)
+    dew_c = (b * alpha) / (a - alpha)
+    dew_f = dew_c * 9 / 5 + 32
+    return dew_f
 # ---------------- MAIN ----------------
 def main():
     now_utc = datetime.utcnow()
@@ -163,7 +178,7 @@ def main():
     )
 
     humidity = clamp(100 - (temp_f - start_values["dewpt_f"]) * 2, 0, 100)
-
+    indoor_dew = dew_point_f(temp_f, humidity)  # <--- new dew point calc
     wind_dir = 230
     rain_in = 0.0
     daily_rain = 0.0
@@ -182,7 +197,7 @@ def main():
         f"&rainin={rain_in:.2f}"
         f"&dailyrainin={daily_rain:.2f}"
         f"&baromin={start_values['baro_in']:.2f}"
-        f"&dewptf={start_values['dewpt_f']:.1f}"
+        f"&dewptf={indoor_dew:.1f}"
         f"&humidity={humidity:.0f}"
         f"&weather={weather}&clouds={clouds}"
         f"&softwaretype={software_type}&action=updateraw"
@@ -201,3 +216,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
