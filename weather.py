@@ -129,6 +129,15 @@ def adjust_indoor_temp(base_temp, now_cst, month, outdoor_temp):
     else:
         return clamp(temp, 70.0, 85.0)
 
+
+def indoor_air_pressure(outdoor_baromin):
+    """
+    Deterministic indoor pressure: slight fixed offset from outdoor.
+    """
+    # Example: indoor slightly higher than outdoor
+    return clamp(outdoor_baromin + 0.02, 28.0, 31.0)
+
+
 # ---------------- DEW POINT CALC ----------------
 def dew_point_f(temp_f, rh):
     """
@@ -223,7 +232,7 @@ def main():
 
     # Apply bedtime wind logic
     wind_speed = bedtime_wind(wind_speed, now_cst)
-
+    indoor_baro = indoor_air_pressure(start_values['baro_in'])
     base_temp = interpolate(start_values["temp_f"], peak_values["temp_f"], factor)
     temp_f = adjust_indoor_temp(base_temp, now_cst, now_cst.month, outdoor_temp)
     humidity = calculate_indoor_humidity(temp_f, now_cst.month)
@@ -247,7 +256,7 @@ def main():
         f"&tempf={temp_f:.1f}"
         f"&rainin={rain_in:.2f}"
         f"&dailyrainin={daily_rain:.2f}"
-        f"&baromin={start_values['baro_in']:.2f}"
+        f"&baromin={indoor_baro:.2f}"
         f"&dewptf={indoor_dew:.1f}"
         f"&humidity={humidity:.0f}"
         f"&weather={weather}&clouds={clouds}"
@@ -270,5 +279,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
