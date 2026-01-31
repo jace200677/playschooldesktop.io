@@ -292,7 +292,7 @@ def main():
         f"&dewptf={indoor_dew:.1f}"
         f"&humidity={humidity:.0f}"
         f"&weather={weather}&clouds={clouds}"
-        f"&uv={uv_index}&solar_raditation={solar_lux}"
+        f"&uv={uv_index}&solarradiation={solar_lux}"
         f"&softwaretype={software_type}&action=updateraw"
     )
 
@@ -312,6 +312,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
