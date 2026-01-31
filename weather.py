@@ -82,6 +82,12 @@ dewpt_f     = fluctuate(interpolate(start_values["dewpt_f"], peak_values["dewpt_
 humidity    = clamp(fluctuate(interpolate(start_values["humidity"], peak_values["humidity"], factor), 3.0), max_val=100)
 if humidity > 100:
     humidity = 100
+
+if wind_speed < 0:
+    wind_speed = 0
+
+if wind_gust < 0:
+    wind_gust = 0
 # Constants
 wind_dir = fluctuate(230.0, 15.0)  # random fluctuation
 if wind_dir < 0:
@@ -121,6 +127,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
