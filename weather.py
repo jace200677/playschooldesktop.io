@@ -76,7 +76,7 @@ def adjust_indoor_temp(base_temp, now_cst, month):
     temp += random.uniform(-3, 3)
     return temp
 
-ef fetch_nearby_wind(station_id):
+def fetch_nearby_wind(station_id):
     url = f"https://api.weather.com/v2/pws/observations/current?stationId={station_id}&format=json&units=e&apiKey=354b43fc8a5e4d7c8b43fc8a5ecd7c56"
     try:
         r = requests.get(url, timeout=5)
@@ -162,5 +162,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
