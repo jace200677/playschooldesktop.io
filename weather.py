@@ -225,7 +225,7 @@ def main():
         f"&rainin={rain_in:.2f}"
         f"&dailyrainin={daily_rain:.2f}"
         f"&baromin={start_values['baro_in']:.2f}"
-        f"&dewptf={start_values['dewpt_f']:.1f}"
+        f"&dewptf={indoor_dew:.1f}"
         f"&humidity={humidity:.0f}"
         f"&weather={weather}&clouds={clouds}"
         f"&softwaretype={software_type}&action=updateraw"
@@ -247,3 +247,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
