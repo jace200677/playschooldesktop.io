@@ -22,12 +22,6 @@ peak_values = {
     "baro_in": 30.30,
     "dewpt_f": 29.0,
 }
-def is_sunny(weather):
-    """
-    Determine if outdoor conditions are sunny/bright.
-    """
-    sunny_conditions = ["SUN", "CLR", "FEW"]  # example codes
-    return weather in sunny_conditions
 
 
 # ---------------- HELPERS ----------------
@@ -55,7 +49,7 @@ def fetch_nearby_conditions(station_id):
             obs.get("windSpeed", 0.0),
             obs.get("windGust", 0.0),
             obs.get("temp", 35.0),
-            weather = obs.get("icon", "CLR"),
+            obs.get("icon", "CLR"),
         )
     except Exception:
         return 0.0, 0.0, 35.0, "CLR"
@@ -265,7 +259,7 @@ def main():
             time_peak - time_start
         ).total_seconds()
 
-    wind_speed, wind_gust, outdoor_temp = fetch_nearby_conditions(NEARBY_STATION_ID)
+    wind_speed, wind_gust, outdoor_temp, weather = fetch_nearby_conditions(NEARBY_STATION_ID)
 
     # Apply bedtime wind logic
     wind_speed = bedtime_wind(wind_speed, now_cst)
@@ -318,6 +312,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
