@@ -1,6 +1,7 @@
 import requests
 import random
 from datetime import datetime, timedelta
+import math
 
 # ---------------- CONFIG ----------------
 STATION_ID = "KMNBABBI25"
@@ -46,7 +47,7 @@ def fetch_nearby_conditions(station_id):
         return (
             obs.get("windSpeed", 0.0),
             obs.get("windGust", 0.0),
-            obs.get("temp", 35.0),  # outdoor temp
+            obs.get("temp", 35.0),
         )
     except Exception:
         return 0.0, 0.0, 35.0
@@ -54,18 +55,16 @@ def fetch_nearby_conditions(station_id):
 # ---------------- HVAC BRAIN ----------------
 def adjust_indoor_temp(base_temp, now_cst, month, outdoor_temp):
     temp = base_temp
-
     weekday = now_cst.weekday()
     is_weekday = weekday <= 4
     is_friday_night = weekday == 4 and now_cst.hour >= 18
     is_weekend = weekday >= 5
-
     is_winter = month in [12, 1, 2]
     is_warm_season = month in [3, 4, 5, 6, 7, 8, 9, 10, 11]
 
     heating_allowed = outdoor_temp < 55
 
-    # ---- seasonal drift ----
+    # seasonal drift
     if is_winter:
         temp += 3.5
     elif month in [6, 7, 8]:
@@ -79,7 +78,7 @@ def adjust_indoor_temp(base_temp, now_cst, month, outdoor_temp):
             return 0.0
         return max_add * ((now - start) / (end - start))
 
-    # ---- heating failure model ----
+    # heating failure model
     heating_failure = False
     weak_heating = False
     if heating_allowed:
@@ -91,12 +90,11 @@ def adjust_indoor_temp(base_temp, now_cst, month, outdoor_temp):
 
     strength = 0.4 if weak_heating else 1.0
 
-    # ---- heating logic ----
+    # heating logic
     if heating_allowed and not heating_failure:
         if is_weekday:
             temp += ramp(4, 30, 6, 0, 6.0 * strength)
             temp += ramp(15, 15, 16, 30, 4.5 * strength)
-
         if is_weekend or is_friday_night:
             if outdoor_temp < 15:
                 temp += 7 * strength
@@ -105,7 +103,7 @@ def adjust_indoor_temp(base_temp, now_cst, month, outdoor_temp):
             elif outdoor_temp < 38:
                 temp += 3 * strength
 
-    # ---- AC logic (80°F+, non-winter) ----
+    # AC logic
     if is_warm_season and temp >= 80:
         ac_roll = random.random()
         if ac_roll < 0.08:
@@ -118,7 +116,7 @@ def adjust_indoor_temp(base_temp, now_cst, month, outdoor_temp):
                 cool += 0.8
             temp -= cool
 
-    # ---- heating overshoot ----
+    # heating overshoot
     overshoot = 0.0
     if heating_allowed and not heating_failure and temp >= 75:
         if random.random() < 0.25:
@@ -126,20 +124,13 @@ def adjust_indoor_temp(base_temp, now_cst, month, outdoor_temp):
 
     max_heat = 76.0 + overshoot
 
-    # ---- final clamps ----
     if is_winter:
         return clamp(temp, None, max_heat)
     else:
         return clamp(temp, 70.0, 85.0)
 
-
-
+# ---------------- DEW POINT CALC ----------------
 def dew_point_f(temp_f, rh):
-    """
-    Calculate indoor dew point in Fahrenheit.
-    Magnus approximation.
-    """
-    # convert to Celsius
     temp_c = (temp_f - 32) * 5 / 9
     a = 17.27
     b = 237.7
@@ -147,12 +138,53 @@ def dew_point_f(temp_f, rh):
     dew_c = (b * alpha) / (a - alpha)
     dew_f = dew_c * 9 / 5 + 32
     return dew_f
+
+# ---------------- BEDTIME WIND ----------------
+def bedtime_wind(base_wind, now_cst):
+    """
+    Adjust indoor wind during bedtime windows with ramp to 10 mph.
+    """
+    weekday = now_cst.weekday()
+    hour_min = now_cst.hour * 60 + now_cst.minute
+    max_wind = 10.0
+
+    # Weekdays Mon-Thu + Friday morning 8 PM → 5:30 AM
+    if weekday <= 4:
+        start = 20 * 60  # 8 PM
+        end = 29 * 60 + 30  # 5:30 AM next day
+        if hour_min < start:
+            return base_wind
+        elif hour_min <= 24*60:
+            factor = (hour_min - start) / (end - start)
+            return base_wind + factor * (max_wind - base_wind)
+        else:
+            factor = (hour_min - 24*60) / (end - 24*60)
+            return base_wind + factor * (max_wind - base_wind)
+
+    # Weekends Sat-Sun + Friday night 10 PM → 2 AM
+    if weekday == 4 or weekday >= 5:
+        if weekday == 4:
+            start = 22 * 60
+            end = 26 * 60
+        else:
+            start = 22 * 60
+            end = 26 * 60
+        if hour_min < start:
+            return base_wind
+        elif hour_min <= 24*60:
+            factor = (hour_min - start) / (end - start)
+            return base_wind + factor * (max_wind - base_wind)
+        else:
+            factor = (hour_min - 24*60) / (end - 24*60)
+            return base_wind + factor * (max_wind - base_wind)
+
+    return base_wind
+
 # ---------------- MAIN ----------------
 def main():
     now_utc = datetime.utcnow()
     now_cst = now_utc + timedelta(hours=CST_OFFSET)
 
-    # interpolation window (kept from your original)
     time_start = datetime(2026, 1, 30, 18, 54)
     time_peak = datetime(2026, 1, 30, 23, 59)
 
@@ -165,20 +197,16 @@ def main():
             time_peak - time_start
         ).total_seconds()
 
-    wind_speed, wind_gust, outdoor_temp = fetch_nearby_conditions(
-        NEARBY_STATION_ID
-    )
+    wind_speed, wind_gust, outdoor_temp = fetch_nearby_conditions(NEARBY_STATION_ID)
 
-    base_temp = interpolate(
-        start_values["temp_f"], peak_values["temp_f"], factor
-    )
+    # Apply bedtime wind logic
+    wind_speed = bedtime_wind(wind_speed, now_cst)
 
-    temp_f = adjust_indoor_temp(
-        base_temp, now_cst, now_cst.month, outdoor_temp
-    )
-
+    base_temp = interpolate(start_values["temp_f"], peak_values["temp_f"], factor)
+    temp_f = adjust_indoor_temp(base_temp, now_cst, now_cst.month, outdoor_temp)
     humidity = clamp(100 - (temp_f - start_values["dewpt_f"]) * 2, 0, 100)
-    indoor_dew = dew_point_f(temp_f, humidity)  # <--- new dew point calc
+    indoor_dew = dew_point_f(temp_f, humidity)
+
     wind_dir = 230
     rain_in = 0.0
     daily_rain = 0.0
@@ -197,7 +225,7 @@ def main():
         f"&rainin={rain_in:.2f}"
         f"&dailyrainin={daily_rain:.2f}"
         f"&baromin={start_values['baro_in']:.2f}"
-        f"&dewptf={indoor_dew:.1f}"
+        f"&dewptf={start_values['dewpt_f']:.1f}"
         f"&humidity={humidity:.0f}"
         f"&weather={weather}&clouds={clouds}"
         f"&softwaretype={software_type}&action=updateraw"
@@ -205,6 +233,9 @@ def main():
 
     print("CST:", now_cst.strftime("%Y-%m-%d %H:%M:%S"))
     print(f"Outdoor: {outdoor_temp:.1f}°F | Indoor: {temp_f:.1f}°F")
+    print(f"Indoor Humidity: {humidity:.0f}% | Indoor Dew Point: {indoor_dew:.1f}°F")
+    print(f"Indoor Wind Speed: {wind_speed:.1f} mph")
+    print("Note: Indoor dew point monitoring historically became common around 1957 CE.")
     print("Sending update...")
 
     try:
@@ -216,4 +247,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
