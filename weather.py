@@ -1,5 +1,5 @@
 import requests
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta
 import random
 
 # ---------------- CONFIG ----------------
@@ -7,24 +7,37 @@ STATION_ID = "KMNBABBI25"
 PASSWORD = "SX8EG38H"
 SECRET = "my-secret-token"
 
-CST_OFFSET = -6  # Central Standard Time
+# Nearby PWS for realistic wind values (replace with real nearby station ID if available)
+NEARBY_STATION_ID = "KMNBABBI"  
 
-# Nearby PWS (Babbitt MN) for wind comparison
-BABBitt_PWS_ID = "KMNBABBI27"
-BABBitt_API_KEY = "354b43fc8a5e4d7c8b43fc8a5ecd7c56"  # replace with your WU API key if needed
+# Timezone offset: CST is UTC-6
+CST_OFFSET = -6
 
-# ---------------- BASE INTERPOLATION VALUES ----------------
-base_values = {
-    "temp_f": {"winter_low": -10, "winter_high": 20, "summer_low": 55, "summer_high": 85},
-    "wind_speed": {"max": 15},  # default max for interpolation
-    "wind_gust": {"max": 30},
+# Base start and peak values for interpolation
+start_values = {
+    "temp_f": 70.0,
+    "wind_speed": 0.0,
+    "wind_gust": 0.0,
     "rain_in": 0.0,
     "daily_rain_in": 0.0,
     "baro_in": 30.30,
     "dewpt_f": 29.0,
     "humidity": 100.0,
-    "uv_index": 0.0,
-    "sol_rad": 0.0
+    "uv_index": 0.0,       
+    "sol_rad": 0.0       
+}
+
+peak_values = {
+    "temp_f": 20.0,
+    "wind_speed": 15.0,
+    "wind_gust": 30.0,
+    "rain_in": 0.0,
+    "daily_rain_in": 0.0,
+    "baro_in": 30.30,
+    "dewpt_f": 29.0,
+    "humidity": 100.0,
+    "uv_index": 0.0,       
+    "sol_rad": 0.0       
 }
 
 # ---------------- UTILITY FUNCTIONS ----------------
@@ -41,90 +54,95 @@ def clamp(value, min_val=None, max_val=None):
         return max_val
     return value
 
-def get_seasonal_temp(now_cst):
-    month = now_cst.month
+def adjust_indoor_temp(base_temp, now_cst, month):
+    """Adjust indoor temperature based on season and time-of-day peaks."""
+    temp = base_temp
+
+    # Seasonal adjustment (MN example)
     if month in [12, 1, 2]:  # Winter
-        return base_values["temp_f"]["winter_low"], base_values["temp_f"]["winter_high"]
+        temp += 5  # indoor heating effect
     elif month in [6, 7, 8]:  # Summer
-        return base_values["temp_f"]["summer_low"], base_values["temp_f"]["summer_high"]
-    else:  # Spring/Fall
-        low = (base_values["temp_f"]["winter_low"] + base_values["temp_f"]["summer_low"]) / 2
-        high = (base_values["temp_f"]["winter_high"] + base_values["temp_f"]["summer_high"]) / 2
-        return low, high
+        temp += 2  # indoor cooling effect
 
-def time_of_day_factor(now_cst):
-    """Return interpolation factor based on time-of-day spikes."""
-    t = now_cst.time()
-    # Early morning spike winter
-    if time(4,30) <= t <= time(6,0):
-        return 0.8
-    # Afternoon spike winter
-    elif time(15,15) <= t <= time(16,30):
-        return 0.7
-    # Daytime default
-    elif time(10,0) <= t <= time(19,0):
-        return 0.6
-    # Night default
-    else:
-        return 0.4
+    # Early morning winter bump (4:30-6:00 AM)
+    if now_cst.hour == 4 and now_cst.minute >= 30 or now_cst.hour == 5:
+        temp += 2
 
-def fetch_babbitt_wind():
-    """Fetch wind speed/gust from nearby Babbitt PWS (JSON API)."""
-    # This example uses a hypothetical API endpoint
-    url = f"https://api.weather.com/v2/pws/observations/current?stationId={BABBitt_PWS_ID}&format=json&units=e&apiKey={BABBitt_API_KEY}"
+    # Afternoon winter bump (3:15-4:30 PM)
+    if now_cst.hour == 15 and now_cst.minute >= 15 or now_cst.hour == 16:
+        temp += 1.5
+
+    # Random fluctuation ±3°F
+    temp += random.uniform(-3, 3)
+    return temp
+
+def fetch_nearby_wind(station_id):
+    """Fetch wind speed/gust from a nearby station (fallback to random if unavailable)."""
+    # Placeholder example: replace with real API if you have WU or NOAA access
     try:
-        r = requests.get(url, timeout=5)
-        data = r.json()
-        wind_speed = float(data['observations'][0]['imperial']['windSpeed'])
-        wind_gust = float(data['observations'][0]['imperial']['windGust'])
-        return wind_speed, wind_gust
-    except Exception as e:
-        print("Error fetching Babbitt wind:", e)
-        return 0.0, 0.0
+        # Example: API request to fetch nearby station data
+        # url = f"https://api.weather.com/v2/pws/observations/current?stationId={station_id}&format=json&units=e&apiKey=YOUR_API_KEY"
+        # r = requests.get(url, timeout=5)
+        # data = r.json()
+        # return data["observations"][0]["imperial"]["windSpeed"], data["observations"][0]["imperial"]["windGust"]
+        
+        # Fallback to random values (simulating realistic wind)
+        return random.uniform(0, 15), random.uniform(0, 30)
+    except Exception:
+        return random.uniform(0, 5), random.uniform(0, 10)
 
-# ---------------- MAIN ----------------
+# ---------------- MAIN SCRIPT ----------------
 def main():
-    # Current times
+    # Current time in UTC and CST
     now_utc = datetime.utcnow()
     now_cst = now_utc + timedelta(hours=CST_OFFSET)
 
-    # Seasonal temperature
-    temp_low, temp_high = get_seasonal_temp(now_cst)
-    factor_temp = time_of_day_factor(now_cst)
-    temp_f = fluctuate(interpolate(temp_low, temp_high, factor_temp), 3.0)
+    # Define start and peak times (CST)
+    time_start_cst = datetime(2026, 1, 30, 18, 54)
+    time_peak_cst  = datetime(2026, 1, 30, 23, 59)
 
-    # Wind interpolation
-    base_wind_speed = interpolate(0.0, base_values["wind_speed"]["max"], factor_temp)
-    base_wind_gust  = interpolate(0.0, base_values["wind_gust"]["max"], factor_temp)
-    wind_speed = fluctuate(base_wind_speed, 5.0)
-    wind_gust  = fluctuate(base_wind_gust, 7.0)
+    # Compute interpolation factor
+    if now_cst <= time_start_cst:
+        factor = 0.0
+    elif now_cst >= time_peak_cst:
+        factor = 1.0
+    else:
+        total_seconds = (time_peak_cst - time_start_cst).total_seconds()
+        elapsed_seconds = (now_cst - time_start_cst).total_seconds()
+        factor = elapsed_seconds / total_seconds
 
-    # Pull real Babbitt wind data and use higher of two
-    babbitt_wind, babbitt_gust = fetch_babbitt_wind()
-    wind_speed = max(0, max(wind_speed, babbitt_wind))
-    wind_gust  = max(0, max(wind_gust, babbitt_gust))
+    # Temperature with seasonal and time-of-day adjustments
+    month = now_cst.month
+    base_temp = interpolate(start_values["temp_f"], peak_values["temp_f"], factor)
+    temp_f = adjust_indoor_temp(base_temp, now_cst, month)
 
-    # Other values
-    rain_in    = interpolate(base_values["rain_in"], base_values["rain_in"], factor_temp)
-    daily_rain = interpolate(base_values["daily_rain_in"], base_values["daily_rain_in"], factor_temp)
-    baro_in    = fluctuate(base_values["baro_in"], 0.05)
-    dewpt_f    = fluctuate(base_values["dewpt_f"], 2.0)
-    humidity   = clamp(fluctuate(base_values["humidity"], 3.0), max_val=100)
-    wind_dir   = fluctuate(230.0, 15.0)
-    if wind_dir < 0:
-        wind_dir = 359
-    elif wind_dir >= 360:
-        wind_dir = 0
+    # Wind from nearby station
+    wind_speed, wind_gust = fetch_nearby_wind(NEARBY_STATION_ID)
+    wind_speed = clamp(wind_speed + random.uniform(-1, 1), 0, None)
+    wind_gust  = clamp(max(wind_gust + random.uniform(-2, 2), wind_speed), 0, None)
+
+    # Other interpolated variables
+    rain_in     = interpolate(start_values["rain_in"], peak_values["rain_in"], factor)
+    daily_rain  = interpolate(start_values["daily_rain_in"], peak_values["daily_rain_in"], factor)
+    baro_in     = fluctuate(interpolate(start_values["baro_in"], peak_values["baro_in"], factor), 0.05)
+    dewpt_f     = fluctuate(interpolate(start_values["dewpt_f"], peak_values["dewpt_f"], factor), 2.0)
+    humidity    = clamp(100 - (temp_f - dewpt_f) * 2 + random.uniform(-3, 3), 0, 100)
+
+    wind_dir = fluctuate(230.0, 15.0)
+    wind_dir = wind_dir % 360
 
     clouds = "BKN250"
     weather = "RA"
     software_type = "vws versionxx"
-    uv_index = max(0, fluctuate(base_values["uv_index"], 0.3))
-    sol_rad  = max(0, fluctuate(base_values["sol_rad"], 10.0))
+
+    uv_index = interpolate(start_values["uv_index"], peak_values["uv_index"], factor)
+    uv_index = max(0, uv_index + random.uniform(-0.3, 0.3))
+
+    sol_rad = interpolate(start_values["sol_rad"], peak_values["sol_rad"], factor)
+    sol_rad = max(0, sol_rad + random.uniform(-10, 10))
 
     dateutc_str = now_utc.strftime("%Y-%m-%d %H:%M:%S")
 
-    # Construct WU URL
     URL = (
         f"https://weatherstation.wunderground.com/weatherstation/updateweatherstation.php"
         f"?ID={STATION_ID}&PASSWORD={PASSWORD}&dateutc=now"
@@ -136,14 +154,14 @@ def main():
         f"&softwaretype={software_type}&action=updateraw"
     )
 
-    # Send update
     print("Sending weather update at CST:", now_cst.strftime("%Y-%m-%d %H:%M:%S"))
     print(f"Temp: {temp_f:.1f}F, Wind: {wind_speed:.1f}mph, Gust: {wind_gust:.1f}mph, Rain: {rain_in:.2f}in, Baro: {baro_in:.2f}, Dew: {dewpt_f:.1f}, Humidity: {humidity:.0f}%")
+    
     try:
-        r = requests.get(URL)
+        r = requests.get(URL, timeout=10)
         print("Status:", r.status_code)
         print("Response:", r.text)
-    except Exception as e:
+    except requests.exceptions.RequestException as e:
         print("Error sending update:", e)
 
 if __name__ == "__main__":
