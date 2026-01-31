@@ -55,7 +55,7 @@ def fetch_nearby_conditions(station_id):
 def adjust_indoor_temp(base_temp, now_cst, month, outdoor_temp):
     temp = base_temp
 
-    weekday = now_cst.weekday()   # 0=Mon … 6=Sun
+    weekday = now_cst.weekday()
     is_weekday = weekday <= 4
     is_friday_night = weekday == 4 and now_cst.hour >= 18
     is_weekend = weekday >= 5
@@ -109,7 +109,7 @@ def adjust_indoor_temp(base_temp, now_cst, month, outdoor_temp):
     if is_warm_season and temp >= 80:
         ac_roll = random.random()
         if ac_roll < 0.08:
-            pass  # AC dead
+            pass
         elif ac_roll < 0.18:
             temp -= random.uniform(0.2, 0.6)
         else:
@@ -137,6 +137,7 @@ def main():
     now_utc = datetime.utcnow()
     now_cst = now_utc + timedelta(hours=CST_OFFSET)
 
+    # interpolation window (kept from your original)
     time_start = datetime(2026, 1, 30, 18, 54)
     time_peak = datetime(2026, 1, 30, 23, 59)
 
@@ -163,11 +164,40 @@ def main():
 
     humidity = clamp(100 - (temp_f - start_values["dewpt_f"]) * 2, 0, 100)
 
+    wind_dir = 230
+    rain_in = 0.0
+    daily_rain = 0.0
+    clouds = "BKN250"
+    weather = "RA"
+    software_type = "vws versionxx"
+
+    # ---------------- PUSH TO WUNDERGROUND ----------------
+    URL = (
+        "https://weatherstation.wunderground.com/weatherstation/updateweatherstation.php"
+        f"?ID={STATION_ID}&PASSWORD={PASSWORD}&dateutc=now"
+        f"&winddir={wind_dir}"
+        f"&windspeedmph={wind_speed:.1f}"
+        f"&windgustmph={wind_gust:.1f}"
+        f"&tempf={temp_f:.1f}"
+        f"&rainin={rain_in:.2f}"
+        f"&dailyrainin={daily_rain:.2f}"
+        f"&baromin={start_values['baro_in']:.2f}"
+        f"&dewptf={start_values['dewpt_f']:.1f}"
+        f"&humidity={humidity:.0f}"
+        f"&weather={weather}&clouds={clouds}"
+        f"&softwaretype={software_type}&action=updateraw"
+    )
+
     print("CST:", now_cst.strftime("%Y-%m-%d %H:%M:%S"))
-    print(f"Outdoor: {outdoor_temp:.1f}°F")
-    print(f"Indoor:  {temp_f:.1f}°F")
-    print(f"Wind:    {wind_speed:.1f} mph (gust {wind_gust:.1f})")
-    print(f"Humidity:{humidity:.0f}%")
+    print(f"Outdoor: {outdoor_temp:.1f}°F | Indoor: {temp_f:.1f}°F")
+    print("Sending update...")
+
+    try:
+        r = requests.get(URL, timeout=10)
+        print("Status:", r.status_code)
+        print("Response:", r.text)
+    except requests.exceptions.RequestException as e:
+        print("Send error:", e)
 
 if __name__ == "__main__":
     main()
