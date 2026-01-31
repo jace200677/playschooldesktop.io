@@ -15,24 +15,11 @@ now_utc = datetime.utcnow()
 now_cst = now_utc + timedelta(hours=CST_OFFSET)
 
 # Define start and peak times in CST
-time_start_cst = datetime(2026, 1, 23, 18, 20)
-time_peak_cst  = datetime(2026, 1, 24, 4, 0)
+time_start_cst = datetime(2026, 1, 30, 18, 54)
+time_peak_cst  = datetime(2026, 1, 30, 23, 59)
 
 # Base start and peak values
 start_values = {
-    "temp_f": -15.0,
-    "wind_speed": 98.0,
-    "wind_gust": 128.0,
-    "rain_in": 0.0,
-    "daily_rain_in": 0.0,
-    "baro_in": 28.80,
-    "dewpt_f": 29.0,
-    "humidity": 100.0,
-    "uv_index": 0.0,       # start UV (night)
-    "sol_rad": 0.0         # start solar radiation (night)
-}
-
-peak_values = {
     "temp_f": 70.0,
     "wind_speed": 0.0,
     "wind_gust": 0.0,
@@ -41,8 +28,21 @@ peak_values = {
     "baro_in": 30.30,
     "dewpt_f": 29.0,
     "humidity": 100.0,
-    "uv_index": 0.0,       # peak UV at solar noon
-    "sol_rad": 0.0       # peak solar radiation W/m^2 at solar noon
+    "uv_index": 0.0,       
+    "sol_rad": 0.0       
+}
+
+peak_values = {
+    "temp_f": 20.0,
+    "wind_speed": 15.0,
+    "wind_gust": 30.0,
+    "rain_in": 0.0,
+    "daily_rain_in": 0.0,
+    "baro_in": 30.30,
+    "dewpt_f": 29.0,
+    "humidity": 100.0,
+    "uv_index": 0.0,       
+    "sol_rad": 0.0       
 }
 
 # Linear interpolation
@@ -121,6 +121,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
