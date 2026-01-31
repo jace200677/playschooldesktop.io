@@ -76,18 +76,14 @@ def adjust_indoor_temp(base_temp, now_cst, month):
     temp += random.uniform(-3, 3)
     return temp
 
-def fetch_nearby_wind(station_id):
-    """Fetch wind speed/gust from a nearby station (fallback to random if unavailable)."""
-    # Placeholder example: replace with real API if you have WU or NOAA access
+ef fetch_nearby_wind(station_id):
+    url = f"https://api.weather.com/v2/pws/observations/current?stationId={station_id}&format=json&units=e&apiKey={API_KEY}"
     try:
-        # Example: API request to fetch nearby station data
-        # url = f"https://api.weather.com/v2/pws/observations/current?stationId={station_id}&format=json&units=e&apiKey=YOUR_API_KEY"
-        # r = requests.get(url, timeout=5)
-        # data = r.json()
-        # return data["observations"][0]["imperial"]["windSpeed"], data["observations"][0]["imperial"]["windGust"]
-        
-        # Fallback to random values (simulating realistic wind)
-        return random.uniform(0, 15), random.uniform(0, 30)
+        r = requests.get(url, timeout=5)
+        data = r.json()
+        wind_speed = data["observations"][0]["imperial"]["windSpeed"]
+        wind_gust  = data["observations"][0]["imperial"]["windGust"]
+        return wind_speed, wind_gust
     except Exception:
         return random.uniform(0, 5), random.uniform(0, 10)
 
@@ -166,3 +162,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
