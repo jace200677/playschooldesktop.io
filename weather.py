@@ -131,6 +131,10 @@ def adjust_indoor_temp(base_temp, now_cst, month, outdoor_temp):
 
 # ---------------- DEW POINT CALC ----------------
 def dew_point_f(temp_f, rh):
+    """
+    Calculate indoor dew point in Fahrenheit from temp and RH.
+    Works for all seasons.
+    """
     temp_c = (temp_f - 32) * 5 / 9
     a = 17.27
     b = 237.7
@@ -138,6 +142,24 @@ def dew_point_f(temp_f, rh):
     dew_c = (b * alpha) / (a - alpha)
     dew_f = dew_c * 9 / 5 + 32
     return dew_f
+
+
+def calculate_indoor_humidity(temp_f, month):
+    """
+    Estimate indoor humidity for all seasons based on temp and typical ranges.
+    Returns %RH
+    """
+    if month in [12, 1, 2]:  # winter
+        base_rh = 30
+    elif month in [3, 4, 5, 9, 10, 11]:  # spring/fall
+        base_rh = 45
+    else:  # summer
+        base_rh = 50
+
+    # Adjust for indoor temp drift (warmer → slightly drier)
+    rh = base_rh - (temp_f - 70) * 0.5  # each °F above 70 reduces RH a bit
+    return clamp(rh, 20, 60)  # limit RH to 20–60%
+
 
 # ---------------- BEDTIME WIND ----------------
 def bedtime_wind(base_wind, now_cst):
@@ -204,8 +226,9 @@ def main():
 
     base_temp = interpolate(start_values["temp_f"], peak_values["temp_f"], factor)
     temp_f = adjust_indoor_temp(base_temp, now_cst, now_cst.month, outdoor_temp)
-    humidity = clamp(100 - (temp_f - start_values["dewpt_f"]) * 2, 0, 100)
+    humidity = calculate_indoor_humidity(temp_f, now_cst.month)
     indoor_dew = dew_point_f(temp_f, humidity)
+
 
     wind_dir = 230
     rain_in = 0.0
@@ -247,4 +270,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
