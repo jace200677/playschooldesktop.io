@@ -14,7 +14,7 @@ CST_OFFSET = -6
 
 # Base start and peak values for interpolation
 start_values = {
-    "temp_f": 70.0,
+    "temp_f": 65.0,
     "wind_speed": 0.0,
     "wind_gust": 0.0,
     "rain_in": 0.0,
@@ -27,7 +27,7 @@ start_values = {
 }
 
 peak_values = {
-    "temp_f": 70.0,
+    "temp_f": 65.0,
     "wind_speed": 15.0,
     "wind_gust": 30.0,
     "rain_in": 0.0,
@@ -150,6 +150,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
