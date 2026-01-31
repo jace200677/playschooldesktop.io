@@ -22,6 +22,13 @@ peak_values = {
     "baro_in": 30.30,
     "dewpt_f": 29.0,
 }
+def is_sunny(weather):
+    """
+    Determine if outdoor conditions are sunny/bright.
+    """
+    sunny_conditions = ["SUN", "CLR", "FEW"]  # example codes
+    return weather in sunny_conditions
+
 
 # ---------------- HELPERS ----------------
 def clamp(val, min_v=None, max_v=None):
@@ -48,9 +55,39 @@ def fetch_nearby_conditions(station_id):
             obs.get("windSpeed", 0.0),
             obs.get("windGust", 0.0),
             obs.get("temp", 35.0),
+            weather = obs.get("icon", "CLR"),
         )
     except Exception:
-        return 0.0, 0.0, 35.0
+        return 0.0, 0.0, 35.0, "CLR"
+
+def indoor_solar_uv(weather, curtains_open, month, hour):
+    """
+    Calculate indoor solar and UV deterministically.
+    - daytime = 6 AM → 6 PM
+    - nighttime = else
+    """
+    # Nighttime
+    if hour < 6 or hour >= 18:
+        return 0, 0
+
+    # Daytime
+    sunny_conditions = ["SUN", "CLR", "FEW"]
+
+    if not curtains_open:
+        return 50, 0.2  # curtains closed
+
+    if weather in sunny_conditions:
+        # Curtains open + sunny → seasonal brightness
+        if month in [6,7,8]:  # summer
+            return 12000, 7
+        elif month in [3,4,5,9,10,11]:  # spring/fall
+            return 9000, 5
+        else:  # winter
+            return 6000, 3
+    else:
+        # Curtains open but cloudy/rainy
+        return 50, 0.2
+
 
 # ---------------- HVAC BRAIN ----------------
 def adjust_indoor_temp(base_temp, now_cst, month, outdoor_temp):
@@ -243,9 +280,10 @@ def main():
     rain_in = 0.0
     daily_rain = 0.0
     clouds = "BKN250"
-    weather = "RA"
+    
     software_type = "vws versionxx"
-
+    CURTAINS_OPEN = False  # Change as needed
+    solar_lux, uv_index = indoor_solar_uv(weather, CURTAINS_OPEN, now_cst.month, now_cst.hour)
     # ---------------- PUSH TO WUNDERGROUND ----------------
     URL = (
         "https://weatherstation.wunderground.com/weatherstation/updateweatherstation.php"
@@ -260,6 +298,7 @@ def main():
         f"&dewptf={indoor_dew:.1f}"
         f"&humidity={humidity:.0f}"
         f"&weather={weather}&clouds={clouds}"
+        f"&uv={uv_index}&solar_raditation={solar_lux}"
         f"&softwaretype={software_type}&action=updateraw"
     )
 
@@ -279,6 +318,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
