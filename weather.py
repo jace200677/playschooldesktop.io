@@ -7,7 +7,7 @@ PASSWORD = "SX8EG38H"
 SECRET = "my-secret-token"
 
 # Nearby PWS for realistic wind values
-NEARBY_STATION_ID = "KMNBABBI"
+NEARBY_STATION_ID = "KMNBABBI27"
 
 # Timezone offset: CST is UTC-6
 CST_OFFSET = -6
@@ -150,4 +150,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
