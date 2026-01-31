@@ -80,7 +80,7 @@ def fetch_nearby_wind(station_id):
         wind_gust  = data["observations"][0]["imperial"]["windGust"]
         return wind_speed, wind_gust
     except Exception:
-        return random.uniform(0, 5), random.uniform(0, 10)
+        return 0
 
 # ---------------- MAIN SCRIPT ----------------
 def main():
@@ -150,5 +150,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
