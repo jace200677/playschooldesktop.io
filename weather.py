@@ -387,15 +387,14 @@ def main():
 
     wind_speed, wind_gust, outdoor_temp, weather = fetch_nearby_conditions(NEARBY_STATION_ID)
     # Apply bedtime wind logic
-    wind_speed = special_wind_event(wind_speed, now_cst)
-    wind_gust = special_wind_event(wind_gust, now_cst)
-    wind_speed = storm_wind_event(wind_speed, now_cst)
-    wind_gust = storm_wind_event(wind_gust, now_cst)
+    wind_speed0 = special_wind_event(wind_speed, now_cst)
+    wind_gust0 = special_wind_event(wind_gust, now_cst)
+    wind_speed0 = storm_wind_event(wind_speed, now_cst)
+    wind_gust0 = storm_wind_event(wind_gust, now_cst)
     
     indoor_baro = indoor_air_pressure(start_values['baro_in'])
     base_temp = interpolate(start_values["temp_f"], peak_values["temp_f"], factor)
-    temp_f = adjust_indoor_temp(base_temp, now_cst, now_cst.month, outdoor_temp)
-    temp_f = special_temp_event(temp_f, now_cst)
+    temp_f0 = special_temp_event(temp_f, now_cst)
     humidity = calculate_indoor_humidity(temp_f, now_cst.month)
     indoor_dew = dew_point_f(temp_f, humidity)
 
@@ -413,9 +412,9 @@ def main():
         "https://weatherstation.wunderground.com/weatherstation/updateweatherstation.php"
         f"?ID={STATION_ID}&PASSWORD={PASSWORD}&dateutc=now"
         f"&winddir={wind_dir}"
-        f"&windspeedmph={wind_speed:.1f}"
-        f"&windgustmph={wind_gust:.1f}"
-        f"&tempf={temp_f:.1f}"
+        f"&windspeedmph={wind_speed0:.1f}"
+        f"&windgustmph={wind_gust0:.1f}"
+        f"&tempf={temp_f0:.1f}"
         f"&rainin={rain_in:.2f}"
         f"&dailyrainin={daily_rain:.2f}"
         f"&baromin={indoor_baro:.2f}"
@@ -442,6 +441,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
