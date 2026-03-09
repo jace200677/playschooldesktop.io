@@ -8,7 +8,7 @@ STATION_ID = "KMNBABBI25"
 PASSWORD = "SX8EG38H"
 
 NEARBY_STATION_ID = "KMNBABBI27"
-CST_OFFSET = -6
+CST_OFFSET = -5
 
 # ---------------- BASE VALUES ----------------
 start_values = {
@@ -442,6 +442,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
