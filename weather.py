@@ -386,14 +386,14 @@ def main():
         ).total_seconds()
 
     wind_speed, wind_gust, outdoor_temp, weather = fetch_nearby_conditions(NEARBY_STATION_ID)
-
     # Apply bedtime wind logic
-    wind_speed = special_wind_event(wind_speed, now_cst)
-    wind_gust = special_wind_event(wind_speed, now_cst)
-    wind_speed = storm_wind_event(wind_speed, now_cst)
-    wind_gust = storm_wind_event(wind_speed, now_cst)
-    wind_speed = bedtime_wind(wind_speed, now_cst)
+    wind_speed = special_wind_event(0, now_cst)
+    wind_gust = special_wind_event(0, now_cst)
+    wind_speed = storm_wind_event(0, now_cst)
+    wind_gust = storm_wind_event(0, now_cst)
+    
     indoor_baro = indoor_air_pressure(start_values['baro_in'])
+    wind_speed = bedtime_wind(wind_speed, now_cst)
     base_temp = interpolate(start_values["temp_f"], peak_values["temp_f"], factor)
     temp_f = adjust_indoor_temp(base_temp, now_cst, now_cst.month, outdoor_temp)
     temp_f = special_temp_event(temp_f, now_cst)
@@ -443,6 +443,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
