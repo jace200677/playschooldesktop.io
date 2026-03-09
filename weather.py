@@ -395,8 +395,8 @@ def main():
     indoor_baro = indoor_air_pressure(start_values['baro_in'])
     base_temp = interpolate(start_values["temp_f"], peak_values["temp_f"], factor)
     temp_f0 = special_temp_event(base_temp, now_cst)
-    humidity = calculate_indoor_humidity(temp_f, now_cst.month)
-    indoor_dew = dew_point_f(temp_f, humidity)
+    humidity = calculate_indoor_humidity(temp_f0, now_cst.month)
+    indoor_dew = dew_point_f(temp_f0, humidity)
 
 
     wind_dir = 230
@@ -441,6 +441,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
