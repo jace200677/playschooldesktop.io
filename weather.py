@@ -329,6 +329,34 @@ def special_temp_event(base_temp, now_cst):
         return interpolate(33, base_temp, factor)
 
     return base_temp
+
+def storm_wind_event(base_wind, now_cst):
+    """
+    March 9 2026 wind event
+    5:25 PM → Midnight
+    Peak by 8 PM with 20–30 mph winds
+    """
+    
+    event_start = datetime(2026, 3, 9, 17, 25)
+    peak_time = datetime(2026, 3, 9, 20, 0)
+    event_end = datetime(2026, 3, 10, 0, 0)
+
+    if now_cst < event_start or now_cst > event_end:
+        return base_wind
+
+    # ramp up
+    if now_cst <= peak_time:
+        factor = (now_cst - event_start).total_seconds() / (peak_time - event_start).total_seconds()
+        target = 20 + factor * 10  # ramp 20 → 30 mph
+
+    # ramp down slowly
+    else:
+        factor = (now_cst - peak_time).total_seconds() / (event_end - peak_time).total_seconds()
+        target = 30 - factor * 10  # ramp 30 → 20 mph
+
+    gust = target + random.uniform(5, 15)
+
+    return max(base_wind, target), gust
 # ---------------- MAIN ----------------
 def main():
     now_utc = datetime.utcnow()
@@ -350,6 +378,9 @@ def main():
 
     # Apply bedtime wind logic
     wind_speed = special_wind_event(wind_speed, now_cst)
+    wind_gust = special_wind_event(wind_speed, now_cst)
+    wind_speed = storm_wind_event(wind_speed, now_cst)
+    wind_gust = storm_wind_event(wind_speed, now_cst)
     wind_speed = bedtime_wind(wind_speed, now_cst)
     indoor_baro = indoor_air_pressure(start_values['baro_in'])
     base_temp = interpolate(start_values["temp_f"], peak_values["temp_f"], factor)
@@ -401,6 +432,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
