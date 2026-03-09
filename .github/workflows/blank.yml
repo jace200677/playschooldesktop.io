@@ -2,7 +2,7 @@ name: Weather Alert Cron
 
 on:
   schedule:
-    - cron: '*/2 * * * *' # every 30 minutes
+  - cron: '* * * * *' # every 1 minute
   workflow_dispatch: # allows manual trigger
 
 jobs:
