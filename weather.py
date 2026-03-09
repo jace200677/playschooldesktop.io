@@ -92,13 +92,13 @@ def adjust_indoor_temp(base_temp, now_cst, month, outdoor_temp):
     is_weekend = weekday >= 5
     is_winter = month in [12, 1, 2]
     is_warm_season = month in [3, 4, 5, 6, 7, 8, 9, 10, 11]
-if now_cst.date() in [
+
+    heating_allowed = outdoor_temp < 55
+    if now_cst.date() in [
         datetime(2026, 3, 9).date(),
         datetime(2026, 3, 10).date()
     ]:
         return base_temp
-    heating_allowed = outdoor_temp < 55
-
     # seasonal drift
     if is_winter:
         temp += 3.5
@@ -443,6 +443,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
