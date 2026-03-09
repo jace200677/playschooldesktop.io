@@ -15,12 +15,16 @@ start_values = {
     "temp_f": 65.0,
     "baro_in": 30.30,
     "dewpt_f": 29.0,
+    "wind_speed": 20.0,
+    "wind_gust": 50.0,
 }
 
 peak_values = {
     "temp_f": 65.0,
     "baro_in": 30.30,
     "dewpt_f": 29.0,
+    "wind_speed": 37.0,
+    "wind_gust": 65.0,
 }
 
 
@@ -373,8 +377,8 @@ def main():
     now_utc = datetime.utcnow()
     now_cst = now_utc + timedelta(hours=CST_OFFSET)
 
-    time_start = datetime(2026, 1, 30, 18, 54)
-    time_peak = datetime(2026, 1, 30, 23, 59)
+    time_start = datetime(2026, 3, 9, 17, 25)
+    time_peak = datetime(2026, 3, 9, 20, 0)
 
     if now_cst <= time_start:
         factor = 0.0
@@ -397,7 +401,8 @@ def main():
     temp_f0 = special_temp_event(base_temp, now_cst)
     humidity = calculate_indoor_humidity(temp_f0, now_cst.month)
     indoor_dew = dew_point_f(temp_f0, humidity)
-
+    wind_speed_base = interpolate(start_values["wind_speed"], peak_values["wind_speed"], factor)
+    wind_gust_base = interpolate(start_values["wind_gust"], peak_values["wind_gust"], factor)
 
     wind_dir = 230
     rain_in = 0.0
@@ -412,8 +417,8 @@ def main():
         "https://weatherstation.wunderground.com/weatherstation/updateweatherstation.php"
         f"?ID={STATION_ID}&PASSWORD={PASSWORD}&dateutc=now"
         f"&winddir={wind_dir}"
-        f"&windspeedmph={wind_speed0:.1f}"
-        f"&windgustmph={wind_gust0:.1f}"
+        f"&windspeedmph={wind_speed_base:.1f}"
+        f"&windgustmph={wind_gust_base:.1f}"
         f"&tempf={temp_f0:.1f}"
         f"&rainin={rain_in:.2f}"
         f"&dailyrainin={daily_rain:.2f}"
@@ -441,6 +446,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
