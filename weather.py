@@ -92,7 +92,11 @@ def adjust_indoor_temp(base_temp, now_cst, month, outdoor_temp):
     is_weekend = weekday >= 5
     is_winter = month in [12, 1, 2]
     is_warm_season = month in [3, 4, 5, 6, 7, 8, 9, 10, 11]
-
+if now_cst.date() in [
+        datetime(2026, 3, 9).date(),
+        datetime(2026, 3, 10).date()
+    ]:
+        return base_temp
     heating_allowed = outdoor_temp < 55
 
     # seasonal drift
@@ -205,39 +209,46 @@ def calculate_indoor_humidity(temp_f, month):
 def bedtime_wind(base_wind, now_cst):
     """
     Adjust indoor wind during bedtime windows with ramp to 10 mph.
+    Disabled on Mar 9–10 2026 due to wind event.
     """
+
+    # Disable bedtime wind during storm event
+    if now_cst.date() in [
+        datetime(2026, 3, 9).date(),
+        datetime(2026, 3, 10).date()
+    ]:
+        return base_wind
+
     weekday = now_cst.weekday()
     hour_min = now_cst.hour * 60 + now_cst.minute
     max_wind = 10.0
 
-    # Weekdays Mon-Thu + Friday morning 8 PM → 5:30 AM
+    # Weekdays Mon–Thu + Friday morning 8 PM → 5:30 AM
     if weekday <= 4:
-        start = 20 * 60  # 8 PM
-        end = 29 * 60 + 30  # 5:30 AM next day
+        start = 20 * 60
+        end = 29 * 60 + 30
+
         if hour_min < start:
             return base_wind
-        elif hour_min <= 24*60:
+        elif hour_min <= 24 * 60:
             factor = (hour_min - start) / (end - start)
             return base_wind + factor * (max_wind - base_wind)
         else:
-            factor = (hour_min - 24*60) / (end - 24*60)
+            factor = (hour_min - 24 * 60) / (end - 24 * 60)
             return base_wind + factor * (max_wind - base_wind)
 
-    # Weekends Sat-Sun + Friday night 10 PM → 2 AM
+    # Weekends Fri night / Sat / Sun → 10 PM → 2 AM
     if weekday == 4 or weekday >= 5:
-        if weekday == 4:
-            start = 22 * 60
-            end = 26 * 60
-        else:
-            start = 22 * 60
-            end = 26 * 60
+        start = 22 * 60
+        end = 26 * 60
+
         if hour_min < start:
             return base_wind
-        elif hour_min <= 24*60:
+        elif hour_min <= 24 * 60:
             factor = (hour_min - start) / (end - start)
             return base_wind + factor * (max_wind - base_wind)
         else:
-            factor = (hour_min - 24*60) / (end - 24*60)
+            factor = (hour_min - 24 * 60) / (end - 24 * 60)
             return base_wind + factor * (max_wind - base_wind)
 
     return base_wind
@@ -432,6 +443,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
