@@ -12,7 +12,7 @@ CST_OFFSET = -5
 
 # ---------------- BASE VALUES ----------------
 start_values = {
-    "temp_f": 65.0,
+    "temp_f": 79.0,
     "baro_in": 30.30,
     "dewpt_f": 29.0,
     "wind_speed": 20.0,
@@ -20,7 +20,7 @@ start_values = {
 }
 
 peak_values = {
-    "temp_f": 65.0,
+    "temp_f": 70.0,
     "baro_in": 30.30,
     "dewpt_f": 29.0,
     "wind_speed": 37.0,
@@ -398,9 +398,8 @@ def main():
     
     indoor_baro = indoor_air_pressure(start_values['baro_in'])
     base_temp = interpolate(start_values["temp_f"], peak_values["temp_f"], factor)
-    temp_f0 = special_temp_event(base_temp, now_cst)
-    humidity = calculate_indoor_humidity(temp_f0, now_cst.month)
-    indoor_dew = dew_point_f(temp_f0, humidity)
+    humidity = calculate_indoor_humidity(base_temp, now_cst.month)
+    indoor_dew = dew_point_f(base_temp, humidity)
     wind_speed_base = interpolate(start_values["wind_speed"], peak_values["wind_speed"], factor)
     wind_gust_base = interpolate(start_values["wind_gust"], peak_values["wind_gust"], factor)
 
@@ -419,7 +418,7 @@ def main():
         f"&winddir={wind_dir}"
         f"&windspeedmph={wind_speed_base:.1f}"
         f"&windgustmph={wind_gust_base:.1f}"
-        f"&tempf={temp_f0:.1f}"
+        f"&tempf={base_temp:.1f}"
         f"&rainin={rain_in:.2f}"
         f"&dailyrainin={daily_rain:.2f}"
         f"&baromin={indoor_baro:.2f}"
@@ -431,7 +430,7 @@ def main():
     )
 
     print("CST:", now_cst.strftime("%Y-%m-%d %H:%M:%S"))
-    print(f"Outdoor: {outdoor_temp:.1f}°F | Indoor: {temp_f:.1f}°F")
+    print(f"Outdoor: {outdoor_temp:.1f}°F | Indoor: {base_temp:.1f}°F")
     print(f"Indoor Humidity: {humidity:.0f}% | Indoor Dew Point: {indoor_dew:.1f}°F")
     print(f"Indoor Wind Speed: {wind_speed:.1f} mph")
     print("Note: Indoor dew point monitoring historically became common around 1957 CE.")
@@ -446,6 +445,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
