@@ -293,6 +293,42 @@ def special_wind_event(base_wind, now_cst):
         return wind
 
     return base_wind
+
+def special_temp_event(base_temp, now_cst):
+    """
+    March 10, 2026 cold air surge with temps dipping into the 30s
+    """
+    if now_cst.date() != datetime(2026, 3, 10).date():
+        return base_temp
+
+    minutes = now_cst.hour * 60 + now_cst.minute
+
+    start1 = 7 * 60 + 15
+    peak1 = 8 * 60
+    mid = 12 * 60
+    peak2 = 13 * 60
+    end = 17 * 60
+
+    # Morning drop
+    if start1 <= minutes <= peak1:
+        factor = (minutes - start1) / (peak1 - start1)
+        return interpolate(base_temp, 38, factor)
+
+    # Hold cold through late morning
+    if peak1 < minutes <= mid:
+        return random.uniform(34, 39)
+
+    # Early afternoon dip
+    if mid < minutes <= peak2:
+        factor = (minutes - mid) / (peak2 - mid)
+        return interpolate(38, 33, factor)
+
+    # Gradual recovery
+    if peak2 < minutes <= end:
+        factor = (minutes - peak2) / (end - peak2)
+        return interpolate(33, base_temp, factor)
+
+    return base_temp
 # ---------------- MAIN ----------------
 def main():
     now_utc = datetime.utcnow()
@@ -318,6 +354,7 @@ def main():
     indoor_baro = indoor_air_pressure(start_values['baro_in'])
     base_temp = interpolate(start_values["temp_f"], peak_values["temp_f"], factor)
     temp_f = adjust_indoor_temp(base_temp, now_cst, now_cst.month, outdoor_temp)
+    temp_f = special_temp_event(temp_f, now_cst)
     humidity = calculate_indoor_humidity(temp_f, now_cst.month)
     indoor_dew = dew_point_f(temp_f, humidity)
 
@@ -364,6 +401,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
