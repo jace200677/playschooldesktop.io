@@ -242,6 +242,57 @@ def bedtime_wind(base_wind, now_cst):
 
     return base_wind
 
+
+def special_wind_event(base_wind, now_cst):
+    """
+    March 10, 2026 wind events
+    """
+    if now_cst.date() != datetime(2026, 3, 10).date():
+        return base_wind
+
+    minutes = now_cst.hour * 60 + now_cst.minute
+
+    # ---- EVENT 1 ----
+    start1 = 7 * 60 + 15
+    peak1 = 8 * 60
+    end1 = 12 * 60
+
+    if start1 <= minutes <= end1:
+
+        if minutes <= peak1:
+            factor = (minutes - start1) / (peak1 - start1)
+        else:
+            factor = 1 - (minutes - peak1) / (end1 - peak1)
+
+        wind = 25 + factor * (35 - 25)
+
+        # occasional higher gusts
+        if random.random() < 0.25:
+            wind += random.uniform(5, 12)
+
+        return wind
+
+    # ---- EVENT 2 ----
+    start2 = 12 * 60
+    peak2 = 13 * 60
+    end2 = 17 * 60
+
+    if start2 <= minutes <= end2:
+
+        if minutes <= peak2:
+            factor = (minutes - start2) / (peak2 - start2)
+        else:
+            factor = 1 - (minutes - peak2) / (end2 - peak2)
+
+        wind = 35 + factor * (55 - 35)
+
+        # occasional higher gusts
+        if random.random() < 0.35:
+            wind += random.uniform(10, 20)
+
+        return wind
+
+    return base_wind
 # ---------------- MAIN ----------------
 def main():
     now_utc = datetime.utcnow()
@@ -262,6 +313,7 @@ def main():
     wind_speed, wind_gust, outdoor_temp, weather = fetch_nearby_conditions(NEARBY_STATION_ID)
 
     # Apply bedtime wind logic
+    wind_speed = special_wind_event(wind_speed, now_cst)
     wind_speed = bedtime_wind(wind_speed, now_cst)
     indoor_baro = indoor_air_pressure(start_values['baro_in'])
     base_temp = interpolate(start_values["temp_f"], peak_values["temp_f"], factor)
@@ -312,6 +364,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
