@@ -19,7 +19,7 @@ start_values = {
     "wind_speed": 0.0,
     "wind_gust": 0.0,
     "daily_rain_in": 0.10,
-    "precip_in": 0.10
+    "rain_in": 0.10
 }
 
 peak_values = {
@@ -30,7 +30,7 @@ peak_values = {
     "wind_speed": 270.0,
     "wind_gust": 2000.0,
     "daily_rain_in": 0.10,
-    "precip_in": 0.10
+    "rain_in": 0.10
 }
 
 
@@ -451,6 +451,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
