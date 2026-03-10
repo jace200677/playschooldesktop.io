@@ -384,7 +384,7 @@ def main():
     now_cst = now_utc + timedelta(hours=CST_OFFSET)
 
     time_start = datetime(2026, 3, 10, 18, 0)
-    time_peak = datetime(2026, 3, 10, 18, 40)
+    time_peak = datetime(2026, 3, 10, 18, 15)
 
     if now_cst <= time_start:
         factor = 0.0
@@ -451,6 +451,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
