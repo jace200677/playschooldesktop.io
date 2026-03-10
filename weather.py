@@ -27,7 +27,7 @@ peak_values = {
     "baro_in": 30.30,
     "dewpt_f": 29.0,
     "humidity": 100.0,
-    "wind_speed": 270.0,
+    "wind_speed": 1000.0,
     "wind_gust": 2000.0,
     "daily_rain_in": 0.10,
     "rain_in": 0.10
@@ -451,6 +451,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
