@@ -12,19 +12,25 @@ CST_OFFSET = -5
 
 # ---------------- BASE VALUES ----------------
 start_values = {
-    "temp_f": -100.0,
-    "baro_in": 30.30,
-    "dewpt_f": 29.0,
-    "wind_speed": 1000.0,
-    "wind_gust": 1060.0,
-}
-
-peak_values = {
     "temp_f": 32.0,
     "baro_in": 30.30,
     "dewpt_f": 29.0,
+    "humidity": 60.0,
     "wind_speed": 0.0,
     "wind_gust": 0.0,
+    "daily_rain_in": 0.10,
+    "precip_in": 0.10
+}
+
+peak_values = {
+    "temp_f": 37.0,
+    "baro_in": 30.30,
+    "dewpt_f": 29.0,
+    "humidity": 100.0,
+    "wind_speed": 270.0,
+    "wind_gust": 2000.0,
+    "daily_rain_in": 0.10,
+    "precip_in": 0.10
 }
 
 
@@ -377,8 +383,8 @@ def main():
     now_utc = datetime.utcnow()
     now_cst = now_utc + timedelta(hours=CST_OFFSET)
 
-    time_start = datetime(2026, 3, 10, 16, 20)
-    time_peak = datetime(2026, 3, 10, 17, 0)
+    time_start = datetime(2026, 3, 10, 17, 20)
+    time_peak = datetime(2026, 3, 10, 18, 0)
 
     if now_cst <= time_start:
         factor = 0.0
@@ -398,14 +404,14 @@ def main():
     
     indoor_baro = indoor_air_pressure(start_values['baro_in'])
     base_temp = interpolate(start_values["temp_f"], peak_values["temp_f"], factor)
-    humidity = calculate_indoor_humidity(base_temp, now_cst.month)
-    indoor_dew = dew_point_f(base_temp, humidity)
+    humidity = interpolate(start_values["humidity"], peak_values["humidity"], factor)
+    rain_in = interpolate(start_values["rain_in"], peak_values["rain_in"], factor)
+    daily_rain = interpolate(start_values["daily_rain_in"], peak_values["daily_rain_in"], factor)
+    indoor_dew = interpolate(start_values["dewpt_f"], peak_values["dewpt_f"], factor)
     wind_speed_base = interpolate(start_values["wind_speed"], peak_values["wind_speed"], factor)
     wind_gust_base = interpolate(start_values["wind_gust"], peak_values["wind_gust"], factor)
 
     wind_dir = 230
-    rain_in = 0.0
-    daily_rain = 0.0
     clouds = "BKN250"
     
     software_type = "vws versionxx"
@@ -445,6 +451,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
