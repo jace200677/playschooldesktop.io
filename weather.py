@@ -383,7 +383,7 @@ def main():
     now_utc = datetime.utcnow()
     now_cst = now_utc + timedelta(hours=CST_OFFSET)
 
-    time_start = datetime(2026, 3, 11, 10, 20)
+    time_start = datetime(2026, 3, 11, 10, 19)
     time_peak = datetime(2026, 3, 11, 10, 45)
 
     if now_cst <= time_start:
@@ -450,6 +450,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
