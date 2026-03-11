@@ -12,23 +12,23 @@ CST_OFFSET = -5
 
 # ---------------- BASE VALUES ----------------
 start_values = {
-    "temp_f": 29.0,
-    "baro_in": 29.38,
-    "dewpt_f": 23.0,
-    "humidity": 72.0,
-    "wind_speed": 16.0,
-    "wind_gust": 37.0,
-    "daily_rain_in": 0.00,
-    "rain_in": 0.00
-}
-
-peak_values = {
     "temp_f": 34.0,
     "baro_in": 29.00,
     "dewpt_f": 23.0,
     "humidity": 53.0,
     "wind_speed": 29.0,
     "wind_gust": 58.0,
+    "daily_rain_in": 0.00,
+    "rain_in": 0.00
+}
+
+peak_values = {
+    "temp_f": 46.0,
+    "baro_in": 28.00,
+    "dewpt_f": 48.0,
+    "humidity": 44.0,
+    "wind_speed": 38.0,
+    "wind_gust": 72.0,
     "daily_rain_in": 0.00,
     "rain_in": 0.00
 }
@@ -383,8 +383,8 @@ def main():
     now_utc = datetime.utcnow()
     now_cst = now_utc + timedelta(hours=CST_OFFSET)
 
-    time_start = datetime(2026, 3, 11, 9, 57)
-    time_peak = datetime(2026, 3, 11, 10, 15)
+    time_start = datetime(2026, 3, 11, 10, 20)
+    time_peak = datetime(2026, 3, 11, 10, 45)
 
     if now_cst <= time_start:
         factor = 0.0
@@ -450,6 +450,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
