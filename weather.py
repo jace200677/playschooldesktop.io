@@ -410,7 +410,7 @@ def main():
     wind_speed_base = interpolate(start_values["wind_speed"], peak_values["wind_speed"], factor)
     wind_gust_base = interpolate(start_values["wind_gust"], peak_values["wind_gust"], factor)
 
-    wind_dir = 230
+    wind_dir = 270
     clouds = "BKN250"
     
     software_type = "vws versionxx"
@@ -450,6 +450,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
