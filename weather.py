@@ -401,8 +401,7 @@ def main():
     wind_gust0 = special_wind_event(wind_gust, now_cst)
     wind_speed0 = storm_wind_event(wind_speed, now_cst)
     wind_gust0 = storm_wind_event(wind_gust, now_cst)
-    
-    indoor_baro = indoor_air_pressure(start_values['baro_in'])
+    baro_base = interpolate(start_values["baro_in"], peak_values["baro_in"], factor)
     base_temp = interpolate(start_values["temp_f"], peak_values["temp_f"], factor)
     humidity = interpolate(start_values["humidity"], peak_values["humidity"], factor)
     rain_in = interpolate(start_values["rain_in"], peak_values["rain_in"], factor)
@@ -427,7 +426,7 @@ def main():
         f"&tempf={base_temp:.1f}"
         f"&rainin={rain_in:.2f}"
         f"&dailyrainin={daily_rain:.2f}"
-        f"&baromin={indoor_baro:.2f}"
+        f"&baromin={baro_base:.2f}"
         f"&dewptf={indoor_dew:.1f}"
         f"&humidity={humidity:.0f}"
         f"&weather={weather}&clouds={clouds}"
@@ -451,6 +450,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
